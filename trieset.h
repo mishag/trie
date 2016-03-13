@@ -10,15 +10,15 @@
 
 template <typename KeyType, typename KeyIterType>
 class TrieSet {
-    
+
 private:
 
     static const int NUM_CHILDREN = 16;
-    
+
         // ===============
         // struct TrieNode
         // ===============
-    
+
     struct TrieNode {
         KeyType        key;
         bool           hasKey;
@@ -26,7 +26,7 @@ private:
         TrieNode      *parent;
         unsigned char  index;
 
-        explicit TrieNode(unsigned char idx) 
+        explicit TrieNode(unsigned char idx)
             : key()
             , hasKey(false)
             , parent(0)
@@ -45,7 +45,7 @@ private:
             }
         }
 
-        bool isLeafNode() const 
+        bool isLeafNode() const
         {
             for (size_t i = 0; i < NUM_CHILDREN; ++i) {
                 if (children[i]) return false;
@@ -54,7 +54,7 @@ private:
             return true;
         }
 
-        std::ostream& print(std::ostream& o) 
+        std::ostream& print(std::ostream& o)
         {
             o << "["
               << " [ address: " << this << " ]"
@@ -64,7 +64,7 @@ private:
               << " [ parent: " << parent << " ]";
 
             for (size_t i = 0; i < NUM_CHILDREN; ++i) {
-                o << " [ children : [ " 
+                o << " [ children : [ "
                   << i << " : " << children[i] << " ] ";
             }
 
@@ -93,7 +93,7 @@ public:
     void   erase (const KeyType& key);
     void   clear ();
     size_t count (const KeyType& key) const;
-    
+
     size_t size()  const { return d_size; }
     bool   empty() const { return d_size == 0; }
 
@@ -139,7 +139,6 @@ void TrieSet<KeyType, KeyIterType>::insert(const KeyType& key)
             curChildren = curNode->children;
             curParent = curNode;
         } else {
-            // curParent = curNode;
             curNode = curChildren[pos];
             curParent = curNode;
             curChildren = curNode->children;
@@ -189,10 +188,10 @@ void TrieSet<KeyType, KeyIterType>::clear()
     }
 
     d_size = 0;
-}    
+}
 
 template <typename KeyType, typename KeyIterType>
-void TrieSet<KeyType, KeyIterType>::erase(const KeyType& key) 
+void TrieSet<KeyType, KeyIterType>::erase(const KeyType& key)
 {
     KeyIterType keyIter(key);
 
@@ -216,8 +215,10 @@ void TrieSet<KeyType, KeyIterType>::erase(const KeyType& key)
     }
 
     // There is actually something to erase.
-    // Case I: This is not a leaf node. Just remove the hasKey flag;
+
     --d_size;
+
+    // Case I: This is not a leaf node. Just remove the hasKey flag;
 
     if (!curNode->isLeafNode()) {
         curNode->hasKey = false;
