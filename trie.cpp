@@ -17,7 +17,7 @@ int main(int argc, char * argv[])
     valPtr = tmap.find("hello");
 
     assert(valPtr);
-    std::cout << "hello " << *valPtr << "\n";
+    // std::cout << "hello " << *valPtr << "\n";
     assert(*valPtr == "world");
 
     valPtr = tmap.find("hi");
@@ -38,6 +38,20 @@ int main(int argc, char * argv[])
     assert(*val == "universe");
     val = tmap.find("hello");
     assert(*val == "universe");
- 
+
+    val.reset(new std::string("on wheels"));
+    tmap.insert("hell", val);
+    val.reset(new std::string("vibes"));
+    tmap.insert("good", val);
+
+    TrieMap<std::string>::ConstIterator it(tmap);
+    // std::cout << it.key() << " => " << *(it.value()) << "\n";
+    // ++it;
+    // std::cout << it.key() << " => " << *(it.value()) << "\n";
+
+    for (; it; ++it) {
+        std::cout << it.key() << " => " << *(it.value()) << "\n";
+    }
+
     return 0;
 }

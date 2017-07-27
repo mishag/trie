@@ -33,7 +33,7 @@ private:
     Node& operator=(const Node&);
 
 public:
-    explicit Node(char c=0)
+    explicit Node(char c = 0)
         : d_char(c)
         , d_childrenMap()
         , d_parent(nullptr)
@@ -61,6 +61,7 @@ public:
 
     void setParent(Node * parent) { d_parent = parent; }
 
+    Node * parent()  { return d_parent; }
     const Node * parent() const { return d_parent; }
 
     bool& terminal() { return d_terminal; }
@@ -92,6 +93,9 @@ std::ostream& operator<<(std::ostream& o, const Node<T>& node)
 
 template <typename T>
 class TrieMap {
+
+    friend class ConstIterator;
+
 private:
     Node<T>   *d_root;
     size_t     d_size;
@@ -198,15 +202,127 @@ public:
         Node<T>       *d_currentNode;
         std::string    d_currentKey;
 
+        ConstIterator& nextNode()
+        {
+            // Pre: d_currentNode is pointing to a valid node
+            // Post: d_currentNode advanced to the next valid node or
+            // becomes null in case iteration is done
+
+            // std::cout << "Calling nextNode on " << *d_currentNode << "\n";
+
+            if (d_currentNode->chr() == 0) {   // root node
+                if (d_currentNode->children().empty()) {
+                    d_currentNode = nullptr;
+                    d_currentKey.clear();
+                    return *this;
+                }
+
+                auto it = d_currentNode->children().begin();
+                d_currentNode = it->second;
+                d_currentKey += it->first;
+                return *this;
+            }
+
+            // non root node
+
+            if (!d_currentNode->children().empty()) {
+                auto it = d_currentNode->children().begin();
+                d_currentNode = it->second;
+                d_currentKey += it->first;
+                return *this;
+            }
+
+            // Non root node but children are empty:
+            // Move up the tree until we have a next available child or until we
+            // reach root node with no more children available for traversing.
+
+            for (;;) {
+                char curChar = d_currentNode->chr();
+                Node<T> * parent = d_currentNode->parent();
+                auto curCharIt = parent->children().find(curChar);
+                auto nextCharIt = ++curCharIt;
+
+                bool nextCharItValid = nextCharIt != parent->children().end();
+
+                if (!parent->chr() && !nextCharItValid) {
+                    
+                    // root node but no more children.
+                    d_currentNode = nullptr;
+                    d_currentKey.clear();
+                    return *this;
+                }
+
+                if (!nextCharItValid) {
+                    d_currentNode = parent;
+                    assert(d_currentNode->chr() != 0);
+                    d_currentKey.pop_back();
+                    continue;
+                }
+
+                d_currentNode = nextCharIt->second;
+                d_currentKey.pop_back();
+                d_currentKey += nextCharIt->first;
+                return *this;
+            }
+
+            // Should not reach here
+            return *this;
+        }
+
     public:
-        ConstIterator(const TrieMap& owner, const char * prefix = "");
-        ~ConstIterator();
+        ConstIterator(const TrieMap& owner, const char * prefix = "")
+            : d_currentNode(owner.d_root)
+            , d_currentKey(prefix)
+        {
+            assert (prefix != nullptr);
 
-        operator bool() const;
-        ConstIterator& operator++();
+            if (prefix[0] != '\0') {
+                d_currentNode = owner.advanceToNode(prefix);
+            }
 
-        const char * key() const;
-        std::shared_ptr<T> value() const;
+            if (!d_currentNode) {
+                d_currentKey.clear();
+                return;
+            }
+
+            if (!d_currentNode->terminal()) {
+                this->operator++();
+            }
+        }
+
+        ~ConstIterator() {}
+
+        ConstIterator(const ConstIterator& other)
+            : d_currentNode(other.d_currentNode)
+            , d_currentKey(other)
+        { }
+
+        ConstIterator& operator=(const ConstIterator& other)
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            d_currentNode = other.d_currentNode;
+            d_currentKey = other.d_currentKey;
+        }
+
+        operator bool() const
+        {
+            return d_currentNode != nullptr;
+        }
+
+        ConstIterator& operator++()
+        {
+            do {
+                this->nextNode();
+            } while (d_currentNode && !d_currentNode->terminal());
+
+            return *this;
+        }
+
+        const char * key() const { return d_currentKey.c_str(); }
+        std::shared_ptr<T> value() const { return d_currentNode->value(); }
     };
 
 
