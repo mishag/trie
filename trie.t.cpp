@@ -53,5 +53,10 @@ int main(int argc, char * argv[])
         std::cout << it.key() << " => " << *(it.value()) << "\n";
     }
 
+    TrieMap<std::string>::ConstIterator it1(tmap, "he");
+    for (; it1; ++it1) {
+        std::cout << it1.key() << " => " << *(it1.value()) << "\n";
+    }
+
     return 0;
 }
