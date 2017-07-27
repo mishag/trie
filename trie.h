@@ -39,7 +39,7 @@ public:
         , d_parent(nullptr)
         , d_value()
         , d_terminal(false)
-    { 
+    {
     }
 
     ~Node() {
@@ -180,7 +180,7 @@ public:
         return currentNodePtr->value();
     }
 
-    ~TrieMap() 
+    ~TrieMap()
     {
         d_size = 0;
         delete d_root;
@@ -197,12 +197,17 @@ public:
     private:
         Node<T>       *d_currentNode;
         std::string    d_currentKey;
+
     public:
         ConstIterator(const TrieMap& owner, const char * prefix = "");
         ~ConstIterator();
 
         operator bool() const;
+        ConstIterator& operator++();
+
+        const char * key() const;
+        std::shared_ptr<T> value() const;
     };
 
-    
+
 };
